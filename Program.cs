@@ -1,12 +1,12 @@
-﻿bool recomecar=true;
-while(recomecar)
+﻿var gerencia=new Gerencia();
+while(true)
 {
-    Produto.Menu();
+    Gerencia.Menu();
     var opcao=Console.ReadLine();
     switch(opcao)
     {
         case "1":
-            Produto.LimparTela();
+            Gerencia.LimparTela();
             //Perguntando os valores ao usuário
             Console.Write("Digite o ID: ");
             int id=int.Parse(Console.ReadLine());
@@ -15,21 +15,36 @@ while(recomecar)
             Console.Write("Digite a marca: ");
             string marca=Console.ReadLine();
             Console.Write("Digite o preço: ");
-            double preco = double.Parse(Console.ReadLine());
+            decimal preco=decimal.Parse(Console.ReadLine());
             Console.Write("Digite a data de validade: ");
-            DateTime validade=DateTime.Parse(Console.ReadLine());
+            DateTime? validade=DateTime.Parse(Console.ReadLine());
             //Criando um objeto da classe Produto com os valores fornecidos pelo usuário
-            Produto produto = new Produto(id,nome,marca,preco,validade);
+            var produto=new Produto(id,nome,marca,preco,validade);
+            gerencia.AdicionaProduto(produto);
+            Console.WriteLine("Produto adicionado com sucesso.");
             break;
         case "2":
-            Produto.LimparTela();
+            Gerencia.LimparTela();
+            gerencia.ListaProduto();
             break;
         case "3":
-            Produto.LimparTela();
+            Gerencia.LimparTela();
+            //Fazendo busca de produto pelo ID
+            Console.Write("Digite o ID do produto para buscar: ");
+            int BuscaId=int.Parse(Console.ReadLine());
+            var ProdutoBusca=gerencia.BuscaProduto(BuscaId);
+            if (ProdutoBusca!=null)
+            {
+                Console.WriteLine(ProdutoBusca.ToString());
+            }
+            else
+            {
+                Console.WriteLine("Produto não encontrado.");
+            }
             break;
         case "4":
-            recomecar=false;
-            break;
+            Console.ReadKey();
+            return;
         default:
             Console.WriteLine("Opção inválida.");
             break;
