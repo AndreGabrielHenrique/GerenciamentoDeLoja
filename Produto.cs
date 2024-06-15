@@ -1,24 +1,126 @@
+using MySql.Data.MySqlClient;
+using System.Collections.Generic;
 class Produto
 {
     //Propriedades da classe Produto
-    public int Id{get;}
-    public string Nome{get;}
-    public string Marca{get;}
-    public decimal Preco{get;}
-    public DateTime? Validade{get;}
-    
+    public int Id{get;private set;}
+    public string Nome{get;private set;}
+    public string Marca{get;private set;}
+    public decimal Preco{get;private set;}
+    public DateTime? Validade{get;private set;}
     //Construtor
-    public Produto(int id,string nome,string marca,decimal preco,DateTime? validade)
+    public Produto(string nome,string marca,decimal preco,DateTime? validade)
     {
-        Id=id;
         Nome=nome;
         Marca=marca;
         Preco=preco;
         Validade=validade;
     }
-    //Método para sobrepor variáveis com .ToString()          
-    public override string ToString()
+    //Método para adicionar ID
+    public void AdicionarID(int id)
     {
-        return $"ID: {Id}\nNome: {Nome}\nMarca: {Marca}\nPreco: {Preco:c}\nValidade: {Validade}";
+        Id=id;
     }
+    //Método para adicionar produto
+    public void AdicionarProduto()
+    {
+        using(var connection=BancoDeDados.GetConnection())
+        {
+            connection.Open();
+            string query="insert into Produtos(Nome,Marca,Preco,Validade) values (@nome,@marca,@preco,@validade)";
+            MySqlCommand cmd=new MySqlCommand(query,connection);
+            cmd.Parameters.AddWithValue("@nome",Nome);
+            cmd.Parameters.AddWithValue("@marca",Marca);
+            cmd.Parameters.AddWithValue("@preco",Preco);
+            cmd.Parameters.AddWithValue("@validade",Validade);
+            cmd.ExecuteNonQuery();
+            AdicionarID((int)cmd.LastInsertedId);
+        }
+    }
+    //Método para listar registros de produtos
+    public static List<Produto> ListarProdutos()
+    {
+        List<Produto> produtos=new List<Produto>();
+        using(var connection=BancoDeDados.GetConnection())
+        {
+            connection.Open();
+            string query="select * from Produtos";
+            MySqlCommand cmd=new MySqlCommand(query,connection);
+            MySqlDataReader reader=cmd.ExecuteReader();
+            while(reader.Read())
+            {
+                DateTime? validade=reader.IsDBNull(reader.GetOrdinal("Validade"))?(DateTime?)null:reader.GetDateTime("Validade");
+                var produto=new Produto
+                (
+                    reader.GetString("Nome"),
+                    reader.GetString("Marca"),
+                    reader.GetDecimal("Preco"),
+                    validade
+                );
+                produto.AdicionarID(reader.GetInt32("Id"));
+                produtos.Add(produto);
+            }
+        }       
+        return produtos;
+    }
+    //Método para buscar produto pelo ID
+    public static List<Produto> BuscarProdutos(int id)
+    {
+        List<Produto> produtos=new List<Produto>();
+        using (var connection=BancoDeDados.GetConnection())
+        {
+            connection.Open();
+            string query="select * from Produtos where Id like @id";
+            MySqlCommand cmd=new MySqlCommand(query,connection);
+            cmd.Parameters.AddWithValue("@id", $"%{id}%");
+            MySqlDataReader reader=cmd.ExecuteReader();
+            while(reader.Read())
+            {
+                DateTime? validade=reader.IsDBNull(reader.GetOrdinal("Validade"))?(DateTime?)null:reader.GetDateTime("Validade");
+                var produto=new Produto
+                (
+                    reader.GetString("Nome"),
+                    reader.GetString("Marca"),
+                    reader.GetDecimal("Preco"),
+                    validade
+                );
+                produto.AdicionarID(reader.GetInt32("Id"));
+                produtos.Add(produto);
+            }
+        }
+        return produtos;  
+    }
+    //Métodos para atualizar produto
+    public void AtualizandoProduto(string nome,string marca,decimal preco)
+    {
+        Nome=nome;
+        Marca=marca;
+        Preco=preco;        
+    }
+    public void AtualizarProduto()
+    {
+        using(var connection=BancoDeDados.GetConnection())
+        {
+            connection.Open();
+            string query="update Produtos set Nome=@nome,Marca=@marca,Preco=@preco where Id=@id";
+            MySqlCommand cmd=new MySqlCommand(query,connection);
+            cmd.Parameters.AddWithValue("@nome",Nome);
+            cmd.Parameters.AddWithValue("@marca",Marca);
+            cmd.Parameters.AddWithValue("@preco",Preco);
+            cmd.Parameters.AddWithValue("@id",Id);
+            cmd.ExecuteNonQuery();
+        }
+    }
+    //Método para excluir produto
+    public static void ExcluirProduto(int id)
+    {
+        using(var connection=BancoDeDados.GetConnection())
+        {
+            connection.Open();
+            string query="delete from Produtos where Id=@id";
+            MySqlCommand cmd=new MySqlCommand(query,connection);
+            cmd.Parameters.AddWithValue("@id",id);
+            cmd.ExecuteNonQuery();
+        }
+    }    
 }
