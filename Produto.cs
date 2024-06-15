@@ -72,7 +72,7 @@ class Produto
             connection.Open();
             string query="select * from Produtos where Id like @id";
             MySqlCommand cmd=new MySqlCommand(query,connection);
-            cmd.Parameters.AddWithValue("@id", $"%{id}%");
+            cmd.Parameters.AddWithValue("@id",id);
             MySqlDataReader reader=cmd.ExecuteReader();
             while(reader.Read())
             {

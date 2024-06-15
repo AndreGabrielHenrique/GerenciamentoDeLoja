@@ -125,6 +125,12 @@ static void ExcluiProduto()
     //Perguntando ID do produto a ser excluido
     Console.Write("Digite a ID do produto: ");
     int id=int.Parse(Console.ReadLine());
+    var produto=Produto.ListarProdutos().Find(unidadeproduto=>unidadeproduto.Id==id);
+    if(produto==null)
+    {
+        Console.WriteLine("Produto não encontrado.");
+        return;
+    }
     Produto.ExcluirProduto(id);
     Console.WriteLine("Produto excluído.");
 }
